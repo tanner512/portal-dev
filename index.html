@@ -2960,10 +2960,33 @@ async function setPrAlphaReady(number) {
 // projects being spec'd/written up but not yet actively coded.
 async function setInProgress(number) {
   await withProjectLoading(number, async () => {
+    // Establish the account BEFORE any write: if the /user call fails we want
+    // the card left alone, not moved to In Progress with nobody on it.
+    const me = await ensureUser();
     await removeLabel(number, 'status:draft');
     await removeLabel(number, 'status:needs-revision');
     await addLabel(number, 'status:in-progress');
-    toast(`#${number} moved to In Progress`);
+    // Starting work claims it. POST /assignees ADDS rather than replacing —
+    // "I am working on this" must never silently remove whoever was already on
+    // it. Claiming a future idea (`claimIdea`) PATCHes because that card had no
+    // owner by definition; this one may.
+    let assigned = false;
+    try {
+      const after = await ghFetch(`/repos/${REPO}/issues/${number}/assignees`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignees: [me.login] }),
+      });
+      // GitHub silently drops an assignee who cannot be assigned (not a
+      // collaborator) and still returns 201, so believe the response, not the
+      // status code.
+      assigned = (after?.assignees ?? []).some((a) => a.login === me.login);
+    } catch (e) {
+      console.warn('assign on start failed', e);
+    }
+    toast(assigned
+      ? `#${number} started — In Progress, assigned to you`
+      : `#${number} moved to In Progress — could not assign you (are you a collaborator on ${REPO}?)`);
   });
 }
 async function setDraft(number) {
