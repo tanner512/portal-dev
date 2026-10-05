@@ -460,6 +460,10 @@ const EXCLUDE = new Set(['Scott']);
 // reference to their card at all. Their attribution is inherited from the first
 // hand-built version of this page and cannot be re-derived — see the notes.
 const MANUAL = {123:['132'], 191:['190'], 218:['217']};
+// Cards whose PR was closed and never imported. Their label history still shows a
+// pr-alpha-ready stage, so without this they would keep crediting work that never
+// shipped. Removing a card here is a credit decision, not a code one.
+const NOT_SHIPPED = new Set([26, 544]);
 
 // localStorage throws outright in some contexts (file://, blocked site data), not
 // merely returning null — so every access is guarded and the page falls back to the
@@ -572,6 +576,7 @@ async function fetchLive(){
             gamma: iss.closedAt ? iss.closedAt.slice(0,10) : null};
   };
   const cand = issues.filter(i => {
+    if(NOT_SHIPPED.has(i.number)) return false;
     const s = stageOf(i); return s.alpha_ready || s.beta || s.gamma;
   });
 
