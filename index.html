@@ -1328,6 +1328,19 @@ function notesHtml(p) {
   const count = p.allComments ? p.allComments.length : (p.commentCount ?? 0);
   return `<button class="btn btn-outline btn-sm" onclick="openNotes(${p.number})" title="View and add notes" style="font-size:11px">💬${count?` <strong>${count}</strong>`:''}</button>`;
 }
+// Every session starts the worktree cleanup in the background and carries on: it
+// frees disk from cards that reached beta without holding up the build. The script
+// lives in the strategy repo so every developer's session runs the same code.
+function housekeepingBlock() {
+  return `
+━━━ AT SESSION START — CLEAN UP FINISHED WORK (in the background, don't wait) ━━━
+Launch with run_in_background, then go straight on to the claim step below:
+  f=~/.togohealth/worktree-cleanup/cleanup.py; mkdir -p "\${f%/*}"; gh api repos/togohealth-dev/strategy-sessions/contents/tools/worktree-cleanup.py --jq .content | base64 -d > "\$f.new" && [ -s "\$f.new" ] && mv "\$f.new" "\$f"; [ -f "\$f" ] && python3 "\$f" --apply --if-stale
+It removes worktrees for cards now in beta / closed / abandoned — only when nothing is uncommitted,
+unpushed or running in them. When it finishes, report in ≤3 lines: disk freed, worktrees removed,
+and any "Needs a look" items. Never force-remove anything it held — ask the user.
+`;
+}
 // Every Claude session claims its card before doing anything else. An in-progress
 // card must always have an owner, and the owner is whoever's session does the work,
 // so the claim runs as that person (`@me`), not as whoever copied the prompt.
@@ -3304,7 +3317,7 @@ function buildCommandProjectPrompt(proj) {
 
   return `Session topic: Building "${proj.title}"
 GitHub Issue: https://github.com/togohealth-dev/emr-beta/issues/${proj.number}
-${claimBlock(proj.number)}Lane: COMMAND — outside the portal. Open the session in ~/claude/command/.
+${housekeepingBlock()}${claimBlock(proj.number)}Lane: COMMAND — outside the portal. Open the session in ~/claude/command/.
 
 ━━━ BEFORE WRITING ANY CODE — READ THESE IN ORDER ━━━
 1. ~/claude/command/CLAUDE.md
@@ -3367,7 +3380,7 @@ function buildProjectPrompt(proj) {
 
   return `Session topic: Building "${proj.title}"
 GitHub Issue: https://github.com/togohealth-dev/emr-beta/issues/${proj.number}
-${claimBlock(proj.number)}
+${housekeepingBlock()}${claimBlock(proj.number)}
 ━━━ BEFORE WRITING ANY CODE — READ THESE IN ORDER ━━━
 1. ~/claude/togo/togo-emr/strategy-sessions-repo/SESSION-STARTER.md
 2. ~/claude/togo/togo-emr/strategy-sessions-repo/strategy-1-portal-onc.md
@@ -3469,7 +3482,7 @@ function copyFuturePrompt(number) {
     .join('\n') || '  - None currently in progress';
   const text = `Session topic: "${p.title}"
 GitHub Issue: https://github.com/togohealth-dev/emr-beta/issues/${number}
-${claimBlock(number, '--add-label current-project --remove-label future-idea ')}
+${housekeepingBlock()}${claimBlock(number, '--add-label current-project --remove-label future-idea ')}
 ━━━ BEFORE WRITING ANY CODE — READ THESE IN ORDER ━━━
 1. ~/claude/togo/togo-emr/strategy-sessions-repo/SESSION-STARTER.md
 2. ~/claude/togo/togo-emr/strategy-sessions-repo/strategy-5-developer-integration.md → PROJECT OVERLAP CHECK, PR REVIEW STANDARDS
@@ -3913,7 +3926,7 @@ function buildPrompt(issue) {
   const en = ctx.enables.length  ? ctx.enables.map(e=>`  - ${e}`).join('\n')  : '  - None';
   return `Session topic: Building ONC §170.315 ${issue.criterionId} — GitHub Issue #${issue.number}
 GitHub Issue: ${issue.url}
-${claimBlock(issue.number, '--add-label current-project ')}Estimated effort: ~${ctx.hours} Claude Code session hours
+${housekeepingBlock()}${claimBlock(issue.number, '--add-label current-project ')}Estimated effort: ~${ctx.hours} Claude Code session hours
 
 Before writing any code:
 1. Read ~/claude/togo/togo-emr/strategy-sessions-repo/SESSION-STARTER.md
