@@ -1303,7 +1303,9 @@ function dotsHtml(p) {
   if (!p) return `<span style="color:var(--border);font-size:12px">—</span>`;
   return `<div class="priority p${p}" title="Priority ${p}">${[1,2,3,4,5].map(n=>`<div class="dot${n<=p?' on':''}"></div>`).join('')}</div>`;
 }
-function assigneeHtml(assignees) {
+function assigneeHtml(assignees, labels = []) {
+  if (!assignees?.length && labels.includes('status:in-progress'))
+    return `<span style="color:#dc2626;font-size:11px;font-weight:700" title="In progress with no owner — every in-progress card must be assigned">⚠ No owner</span>`;
   if (!assignees?.length) return `<span style="color:var(--border);font-size:12px">—</span>`;
   return `<span style="font-size:11px;font-weight:600">${assignees.map(teamName).join(', ')}</span>`;
 }
@@ -1325,6 +1327,21 @@ function notesHtml(p) {
   // comment count captured at load. openNotes() fetches the thread on demand.
   const count = p.allComments ? p.allComments.length : (p.commentCount ?? 0);
   return `<button class="btn btn-outline btn-sm" onclick="openNotes(${p.number})" title="View and add notes" style="font-size:11px">💬${count?` <strong>${count}</strong>`:''}</button>`;
+}
+// Every Claude session claims its card before doing anything else. An in-progress
+// card must always have an owner, and the owner is whoever's session does the work,
+// so the claim runs as that person (`@me`), not as whoever copied the prompt.
+function claimBlock(n, extra = '') {
+  return `
+━━━ FIRST ACTION — CLAIM THIS CARD (before reading or editing anything) ━━━
+An in-progress card must always have an owner. As the person doing the work:
+  gh issue view ${n} --repo togohealth-dev/emr-beta --json assignees,labels
+- Labelled status:blocked → STOP. Do not claim it; tell the user why it is blocked.
+- Assigned to someone else → ask the user before taking it over.
+- Otherwise claim it:
+  gh issue edit ${n} --repo togohealth-dev/emr-beta --add-assignee @me --add-label status:in-progress ${extra}--remove-label status:draft --remove-label status:needs-revision
+Re-run the view and confirm your login is an assignee and status:in-progress is set.
+`;
 }
 function promptBtn(number, isFuture) {
   const fn = isFuture ? `copyFuturePrompt(${number})` : `copyProjectPrompt(${number})`;
@@ -1778,7 +1795,7 @@ function renderWoundCare() {
         <div class="proj-desc">${esc(wcBlurb(p.body))}</div>
       </td>
       <td>${dotsHtml(p.priority)}</td>
-      <td>${assigneeHtml(p.assignees)}</td>
+      <td>${assigneeHtml(p.assignees, p.labels)}</td>
       <td>${estHtml(p.codingEst)}</td>
       <td>${notesHtml(p)}</td>
       <td><div class="actions">
@@ -2035,7 +2052,7 @@ function renderCurrentProjects() {
     </td>
     <td>${statusBadge(p.status, p.alphaUrl, betaVersionUrl)}</td>
     <td>${dotsHtml(p.priority)}</td>
-    <td>${assigneeHtml(p.assignees)}</td>
+    <td>${assigneeHtml(p.assignees, p.labels)}</td>
     <td>${estHtml(p.codingEst)}</td>
     <td>${prHtml(p.prUrl, p.prNum)}</td>
     <td>${oncHtml(p.oncRefs)}</td>
@@ -2353,7 +2370,7 @@ function futureIdeaRow(p, idx) {
         </td>
         <td><span class="badge" style="background:var(--bg-card);color:var(--text-muted);font-size:11px;padding:2px 8px;border:1px solid var(--border)">Idea</span></td>
         <td>${dotsHtml(p.priority)}</td>
-        <td>${assigneeHtml(p.assignees)}</td>
+        <td>${assigneeHtml(p.assignees, p.labels)}</td>
         <td>${estHtml(p.codingEst)}</td>
         <td>${oncHtml(p.oncRefs)}</td>
         <td>${notesHtml(p)}</td>
@@ -2518,7 +2535,7 @@ function renderCompleted() {
         </td>
         <td><span class="badge ps-done" style="font-size:11px">✓ Done</span></td>
         <td>${dotsHtml(p.priority)}</td>
-        <td>${assigneeHtml(p.assignees)}</td>
+        <td>${assigneeHtml(p.assignees, p.labels)}</td>
         <td>${estHtml(p.codingEst)}</td>
         <td>${prHtml(p.prUrl, p.prNum)}</td>
         <td>${oncHtml(p.oncRefs)}</td>
@@ -2560,7 +2577,7 @@ function renderAbandoned() {
         <td><a class="proj-title" href="${p.url}" target="_blank">${esc(p.title)}</a></td>
         <td><span class="badge ps-abandoned" style="font-size:11px">Abandoned</span></td>
         <td>${dotsHtml(p.priority)}</td>
-        <td>${assigneeHtml(p.assignees)}</td>
+        <td>${assigneeHtml(p.assignees, p.labels)}</td>
         <td>${estHtml(p.codingEst)}</td>
         <td>${prHtml(p.prUrl, p.prNum)}</td>
         <td>${oncHtml(p.oncRefs)}</td>
@@ -3241,7 +3258,7 @@ async function submitNewProject() {
   const isCommand = document.getElementById('m-command').checked;
   const labels = addModalMode === 'future'
     ? ['future-idea', type, `priority-${priority}`]
-    : ['current-project', type, 'status:in-progress'];
+    : ['current-project', type, assign ? 'status:in-progress' : 'status:draft'];  // in progress needs an owner
   // Command work is labelled at creation so it picks up the Command prompt and
   // sorts with the rest of the Command bundle (umbrella #754).
   if (isCommand) labels.push('command');
@@ -3287,7 +3304,7 @@ function buildCommandProjectPrompt(proj) {
 
   return `Session topic: Building "${proj.title}"
 GitHub Issue: https://github.com/togohealth-dev/emr-beta/issues/${proj.number}
-Lane: COMMAND — outside the portal. Open the session in ~/claude/command/.
+${claimBlock(proj.number)}Lane: COMMAND — outside the portal. Open the session in ~/claude/command/.
 
 ━━━ BEFORE WRITING ANY CODE — READ THESE IN ORDER ━━━
 1. ~/claude/command/CLAUDE.md
@@ -3350,7 +3367,7 @@ function buildProjectPrompt(proj) {
 
   return `Session topic: Building "${proj.title}"
 GitHub Issue: https://github.com/togohealth-dev/emr-beta/issues/${proj.number}
-
+${claimBlock(proj.number)}
 ━━━ BEFORE WRITING ANY CODE — READ THESE IN ORDER ━━━
 1. ~/claude/togo/togo-emr/strategy-sessions-repo/SESSION-STARTER.md
 2. ~/claude/togo/togo-emr/strategy-sessions-repo/strategy-1-portal-onc.md
@@ -3452,7 +3469,7 @@ function copyFuturePrompt(number) {
     .join('\n') || '  - None currently in progress';
   const text = `Session topic: "${p.title}"
 GitHub Issue: https://github.com/togohealth-dev/emr-beta/issues/${number}
-
+${claimBlock(number, '--add-label current-project --remove-label future-idea ')}
 ━━━ BEFORE WRITING ANY CODE — READ THESE IN ORDER ━━━
 1. ~/claude/togo/togo-emr/strategy-sessions-repo/SESSION-STARTER.md
 2. ~/claude/togo/togo-emr/strategy-sessions-repo/strategy-5-developer-integration.md → PROJECT OVERLAP CHECK, PR REVIEW STANDARDS
@@ -3870,6 +3887,9 @@ function revise(n) {
     await removeLabel(n, 'status:ready-for-atl');
     await removeLabel(n, 'status:ready-for-eval');
     for (const l of ['progress-25','progress-50','progress-75']) await removeLabel(n, l);
+    // In progress needs an owner: keep the developer if there is one, else the reviser.
+    const cur = await ghFetch(`/repos/${REPO}/issues/${n}`);
+    if (!(cur.assignees||[]).length) await ghFetch(`/repos/${REPO}/issues/${n}/assignees`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({assignees:[currentUser.login]})});
     await addLabel(n, 'status:in-progress');
     await addLabel(n, 'current-project');
     await addLabel(n, 'progress-90');
@@ -3893,7 +3913,7 @@ function buildPrompt(issue) {
   const en = ctx.enables.length  ? ctx.enables.map(e=>`  - ${e}`).join('\n')  : '  - None';
   return `Session topic: Building ONC §170.315 ${issue.criterionId} — GitHub Issue #${issue.number}
 GitHub Issue: ${issue.url}
-Estimated effort: ~${ctx.hours} Claude Code session hours
+${claimBlock(issue.number, '--add-label current-project ')}Estimated effort: ~${ctx.hours} Claude Code session hours
 
 Before writing any code:
 1. Read ~/claude/togo/togo-emr/strategy-sessions-repo/SESSION-STARTER.md
