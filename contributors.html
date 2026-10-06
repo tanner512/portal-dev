@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="theme.js"></script>
 <title>Contributor Hours — TogoHealth Portal Development</title>
 <link rel="icon" href="icons/togo-logo.png">
 <style>
@@ -43,17 +44,20 @@
   a{color:var(--primary)}
   .note{font-size:12px;color:var(--muted);border-left:3px solid var(--border);padding:8px 12px;background:#fafbfc;border-radius:0 6px 6px 0}
   @media(max-width:700px){header{padding:0 12px}main{padding:20px 12px}}
-  @media (prefers-color-scheme: dark){
-    :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e}
-    .btn{background:#161b22;color:var(--text)} th{background:#12171e} tr:hover td{background:#1b2230}
-    .tot{background:#161b22} .note{background:#12171e}
-  }
+  /* Dark theme — set by theme.js (auto = sunset→sunrise). */
+  html[data-theme="dark"]{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e}
+  html[data-theme="dark"] .btn{background:#161b22;color:var(--text)}
+  html[data-theme="dark"] th{background:#12171e}
+  html[data-theme="dark"] tr:hover td{background:#1b2230}
+  html[data-theme="dark"] .tot{background:#161b22}
+  html[data-theme="dark"] .note{background:#12171e}
 </style></head><body>
 <header>
   <div class="logo">TogoHealth <span>&middot; Contributor Hours</span></div>
   <div style="display:flex;gap:8px">
     <a class="btn" href="index.html">&larr; Tracker</a>
     <a class="btn" href="workflow.html">How We Ship</a>
+    <button id="theme-btn" class="btn" onclick="trackerTheme.cycle()" title="Theme">◐</button>
   </div>
 </header>
 <main>

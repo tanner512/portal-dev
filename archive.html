@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="theme.js"></script>
 <title>Archive · TogoHealth Portal Development Tracker</title>
 <link rel="icon" href="icons/togo-logo.png">
 <style>
@@ -46,6 +47,12 @@
                        border-radius:7px; font-size:13px; }
   .status { color:var(--text-muted); font-size:13px; padding:8px 0; }
   footer { max-width:1200px; margin:0 auto; padding:0 24px 40px; font-size:11px; color:var(--text-muted); }
+  /* ── Dark theme ── set by theme.js (auto = sunset→sunrise, from the viewer's time zone).
+     Light mode is untouched: everything below only applies under html[data-theme="dark"]. */
+  html[data-theme="dark"] { --bg:#0d1117; --surface:#161b22; --border:#30363d; --text:#e6edf3; --text-muted:#8b949e;
+    --green:#3fb950; --green-bg:#12301f; --gray:#8b949e; --gray-bg:#1c2128; }
+  /* Generated from every stylesheet rule that hardcodes a colour. */
+
 </style>
 </head>
 <body>
@@ -60,6 +67,7 @@
     <a class="btn" href="admin-view.html">📋 Admin view</a>
     <a class="btn" href="contributors.html">📊 Completed stats</a>
     <a class="btn" href="https://github.com/togohealth-dev/emr-beta/issues?q=is%3Aissue+is%3Aclosed" target="_blank">GitHub ↗</a>
+    <button id="theme-btn" class="btn" onclick="trackerTheme.cycle()" title="Theme">◐</button>
   </div>
 </header>
 
