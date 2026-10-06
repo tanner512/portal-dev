@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="theme.js"></script>
 <link rel="icon" type="image/png" href="icons/togo-favicon.png"><link rel="apple-touch-icon" href="icons/togo-favicon.png">
 <title>TogoHealth · Portal Development Tracker</title>
 <style>
@@ -400,6 +401,7 @@
     <a href="admin-view.html" class="btn btn-outline" title="Admin view — what needs you, pipeline counts, and what's next in each bundle">📋<span class="lbl-wide"> Admin view</span></a>
     <a href="https://github.com/togohealth-dev/emr-beta/issues" target="_blank" class="btn btn-outline">GitHub ↗</a>
     <span id="last-updated" style="font-size:11px;color:var(--text-muted);align-self:center;white-space:nowrap" title="The board re-reads GitHub every 60 seconds"></span>
+    <button id="theme-btn" class="btn btn-outline" onclick="trackerTheme.cycle()" title="Theme">◐</button>
     <button class="btn btn-outline" onclick="loadAll()" title="Refresh now">↻<span class="lbl-wide"> Refresh</span></button>
     <button class="btn btn-danger" onclick="clearToken()">Sign out</button>
   </div>
@@ -751,7 +753,72 @@
   <span class="busy-spin" style="display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:busyspin 0.7s linear infinite"></span>
   <span id="busy-text">Updating…</span>
 </div>
-<style>@keyframes busyspin{to{transform:rotate(360deg)}}</style>
+<style>@keyframes busyspin{to{transform:rotate(360deg)}}  /* ── Dark theme ── set by theme.js (auto = sunset→sunrise, from the viewer's time zone).
+     Light mode is untouched: everything below only applies under html[data-theme="dark"]. */
+  html[data-theme="dark"] {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --text-muted: #8b949e;
+    --primary: #4493f8; --primary-hover: #6aa8fa;
+    --green-bright: #3fb950; --green-atl: #2ea043; --green-bg: #12301f;
+    --red: #f85149; --yellow: #d29922; --amber: #e3b341; --amber-bg: #3a2e12;
+    --purple: #a371f7; --purple-bg: #2a2140; --orange: #f0883e; --orange-bg: #3d2614;
+    --gray: #8b949e;
+    --wave1-bg: #121d2f; --wave1-border: #1f3a64;
+    --wave2-bg: #11241a; --wave2-border: #1f4d32;
+    --wave3-bg: #2a2611; --wave3-border: #5c5214;
+    --wave4-bg: #24152b; --wave4-border: #4a2c5c;
+  }
+  html[data-theme="dark"] img[src$="togo-logo.png"] { filter: brightness(1.15); }
+  /* Generated from every stylesheet rule that hardcodes a colour: light panels → dark
+     tints of the same hue, dark text → lighter, pale borders → muted. */
+  html[data-theme="dark"] .section-nav a:hover { background:#1b202f }
+  html[data-theme="dark"] .board-switch { background:#1b202f; border:1px solid #293977 }
+  html[data-theme="dark"] .board-switch:hover { background:#1d2233 !important }
+  html[data-theme="dark"] .btn-outline { background:var(--surface) }
+  html[data-theme="dark"] .btn-danger { background:var(--surface); border-color:#7d2d2d }
+  html[data-theme="dark"] .btn-danger:hover { background:#2e1a1a }
+  html[data-theme="dark"] .btn-copy { background:var(--surface); border-color:#362973 }
+  html[data-theme="dark"] .btn-copy:hover { background:#1d1a2e }
+  html[data-theme="dark"] .btn-copy.copied { border-color:#327349; background:#1b2f21 }
+  html[data-theme="dark"] .btn-amber { background:var(--surface) }
+  html[data-theme="dark"] .btn-purple { background:var(--surface); border-color:#3c2c7a }
+  html[data-theme="dark"] .btn-orange { background:var(--surface); border-color:#8a5e30 }
+  html[data-theme="dark"] .eval-alert { background:#302c1b }
+  html[data-theme="dark"] th { background:#1e2328 }
+  html[data-theme="dark"] tr.row-atl td { background:#1b2f21 }
+  html[data-theme="dark"] tr.row-beta-complete td { background:#302c1b }
+  html[data-theme="dark"] .s-not-started { background:#232529 }
+  html[data-theme="dark"] .s-in-progress { background:#1e2835; color:#8ca5eb }
+  html[data-theme="dark"] .s-done { background:#282a2f; color:#d2d8e1 }
+  html[data-theme="dark"] .badge-mips { background:#3a3522 }
+  html[data-theme="dark"] .onc-seg { background:#222732 }
+  html[data-theme="dark"] .onc-seg.seg-testing { background:repeating-linear-gradient(45deg,#232a35,#232a35 3px,#1e242f 3px,#1e242f 6px) }
+  html[data-theme="dark"] .onc-seg.seg-optional { background:repeating-linear-gradient(45deg,#282134,#282134 3px,#241c30 3px,#241c30 6px) }
+  html[data-theme="dark"] .sw.sw-testing { background:repeating-linear-gradient(45deg,#232a35,#232a35 3px,#1e242f 3px,#1e242f 6px) }
+  html[data-theme="dark"] .sw.sw-optional { background:repeating-linear-gradient(45deg,#282134,#282134 3px,#241c30 3px,#241c30 6px) }
+  html[data-theme="dark"] .onc-modal-card { background:var(--surface) }
+  html[data-theme="dark"] .onc-bar-lg .onc-seg { border-right:2px solid #474747 }
+  html[data-theme="dark"] .onc-detail-proj:hover { background:#1b212f }
+  html[data-theme="dark"] .onc-scope-box { background:#1a212e }
+  html[data-theme="dark"] .onc-row-nondev { background:#1a202c }
+  html[data-theme="dark"] .stats-link { background:#1b212f; border:1px solid #294077 }
+  html[data-theme="dark"] .proj-table-wrap th { background:#1e2328 }
+  html[data-theme="dark"] .proj-table-wrap tr:hover td { background:#191f2c }
+  html[data-theme="dark"] .ps-planning { background:#232529 }
+  html[data-theme="dark"] .ps-in-progress { background:#1e2835; color:#8ca5eb }
+  html[data-theme="dark"] .ps-pr-ready { background:#3a3522 }
+  html[data-theme="dark"] .ps-needs-revision { background:#331d1d }
+  html[data-theme="dark"] .ps-alpha { background:#213a35; color:#c1f4f0 }
+  html[data-theme="dark"] .ps-ready-prod { background:#1d2233 }
+  html[data-theme="dark"] tr.int-vgroup td { background:#1c2230 }
+  html[data-theme="dark"] .mention-bubble.ok { background:#1e3526; color:#c7f3d8; border:1px solid #397f52 }
+  html[data-theme="dark"] .mention-bubble.bad { background:#331d1d; color:#ed9b9b; border:1px solid #7d2d2d }
+  html[data-theme="dark"] .notify-suggest { background:var(--surface) }
+  html[data-theme="dark"] .notify-suggest .opt.hi { background:#1b242f }
+  html[data-theme="dark"] .ps-beta-version { background:#251d32; color:#cba3ed }
+  html[data-theme="dark"] .ps-abandoned { background:#232529 }
+  html[data-theme="dark"] .ps-done { background:#282a2f; color:#d2d8e1 }
+</style>
 
 <script>
 const REPO = 'togohealth-dev/emr-beta';
@@ -1804,7 +1871,7 @@ function renderWoundCare() {
     rows += groups[k].map(p => `<tr id="proj-${p.number}">
       <td style="font-size:12px;font-weight:600;white-space:nowrap">${p.url ? `<a href="${p.url}" target="_blank" style="color:var(--text-muted);text-decoration:none" title="Open issue #${p.number} on GitHub">#${p.number}</a>` : `#${p.number}`}</td>
       <td>
-        ${p.rank ? `<span class="badge" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:11px;padding:1px 6px;margin-right:6px" title="Stated build order — ${p.rank === 1 ? 'most important build in this track' : 'rank ' + p.rank}">★${p.rank}</span>` : ''}<a class="proj-title" href="${p.url}" target="_blank">${esc(p.title)}</a>
+        ${p.rank ? `<span class="badge" style="background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a;font-size:11px;padding:1px 6px;margin-right:6px" title="Stated build order — ${p.rank === 1 ? 'most important build in this track' : 'rank ' + p.rank}">★${p.rank}</span>` : ''}<a class="proj-title" href="${p.url}" target="_blank">${esc(p.title)}</a>
         <div class="proj-desc">${esc(wcBlurb(p.body))}</div>
       </td>
       <td>${dotsHtml(p.priority)}</td>
@@ -3686,7 +3753,7 @@ function renderStats() {
       <div class="stat-sub"><b>${fmtPts(mipsSc.base+mipsSc.delivered)}/${fmtPts(mipsSc.devTotal)} pts</b> to the 100% line${(mipsSc.testing+mipsSc.optional)?` · +${fmtPts(mipsSc.testing)} testing · +${fmtPts(mipsSc.optional)} optional beyond`:''}</div>
     </div>
     <div class="stat stat-sm"><div class="stat-label">Beta Testing</div><div class="stat-value" style="${inBeta?'color:var(--orange)':''}">${inBeta}</div></div>
-    <div class="stat stat-sm" style="${atl?'border-color:var(--green-atl);background:#f0fdf4':''}">
+    <div class="stat stat-sm" style="${atl?'border-color:var(--green-atl);background:var(--wave2-bg)':''}">
       <div class="stat-label" style="${atl?'color:var(--green-atl)':''}">Ready for ATL</div>
       <div class="stat-value" style="${atl?'color:var(--green-atl)':''}">${atl}</div>
     </div>
