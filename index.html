@@ -1427,6 +1427,8 @@ An in-progress card must always have an owner. As the person doing the work:
 - Otherwise claim it:
   gh issue edit ${n} --repo togohealth-dev/emr-beta --add-assignee @me --add-label status:in-progress ${extra}--remove-label status:draft --remove-label status:needs-revision
 Re-run the view and confirm your login is an assignee and status:in-progress is set.
+Then rename this session so it can be found again: "${n} <short topic>" (desktop app: the session-rename
+tool on self). Card numbers, not PR numbers; add a number if this session picks up another card.
 `;
 }
 function promptBtn(number, isFuture) {
