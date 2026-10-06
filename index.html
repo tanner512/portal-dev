@@ -306,6 +306,12 @@
   /* Tiered sub-sections inside a Current-Projects group: a small gap + a quiet label
      separate the "live" tier (deploy link / in the shared build) from the "queued" tier. */
   tr.cp-tier-gap td { height:12px; padding:0; border:none; background:transparent; }
+  .cp-tier-link { color: var(--text); cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--border); }
+  .cp-tier-link:hover { color: var(--primary); border-bottom-color: var(--primary); }
+  .cp-tier-count { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-left: 4px; }
+  @keyframes cp-tier-flash { from { background: var(--wave1-border); } to { background: transparent; } }
+  tr.cp-tier-flash td { animation: cp-tier-flash 1.4s ease-out; }
+  tr.cp-tier-note { scroll-margin-top: 140px; }
   tr.cp-tier-note td { font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
     color:var(--text-muted); background:transparent; border:none; padding:2px 8px 4px; }
   /* Integrations vendor group header (jump-bar anchors) */
@@ -2072,7 +2078,8 @@ const statusBadge = (s, alphaUrl, betaVersionUrl) => {
 // shared build), the lower tier is "queued" (ready but not yet deployed/promoted).
 //  • Beta-Version: [in the combined Beta-Version] — gap — [Ready for Beta, queued]
 //  • Alpha Testing: [live alpha builds on prod DB] — gap — [PR alpha-ready, awaiting deploy]
-//  • In Progress / Needs Revision / Drafts: [in progress + needs revision] — gap — [drafts]
+//  • In Progress / Needs Revision / Drafts: [in progress] — gap — [needs revision] — gap — [drafts]
+//    Each word of that title is a link that scrolls to its own tier.
 const CP_GROUPS = [
   // Newest stage first: Beta → Alpha → In Progress → Drafts, all above Future
   // Builds. Within a group the further-along tier sits on top too (live beta
@@ -2087,10 +2094,11 @@ const CP_GROUPS = [
       { statuses:['alpha_testing'],  note:'Live alpha builds — each on the production database' },
       { statuses:['pr_alpha_ready'], note:'PR alpha-ready — awaiting Scott\u2019s alpha deploy' },
     ] },
-  { key:'progress', anchor:'cp-progress', title:'🛠️ In Progress / Needs Revision / Drafts',
+  { key:'progress', anchor:'cp-progress', title:'🛠️ In Progress / Needs Revision / Drafts', icon:'🛠️',
     tiers:[
-      { statuses:['in_progress','needs_revision'], note:'In progress and needs-revision' },
-      { statuses:['draft','planning'],             note:'Drafts — not started yet' },
+      { statuses:['in_progress'],      note:'In progress',              label:'In Progress' },
+      { statuses:['needs_revision'],   note:'Needs revision',           label:'Needs Revision' },
+      { statuses:['draft','planning'], note:'Drafts — not started yet', label:'Drafts' },
     ] },
 ];
 
@@ -2145,7 +2153,12 @@ function renderCurrentProjects() {
 
   const sections = CP_GROUPS.map(g => {
     const groupCount = filtered.filter(p => g.tiers.some(t => t.statuses.includes(p.status))).length;
-    let titleHtml = `<span style="font-weight:700;font-size:14px">${g.title}</span>
+    const tierCount = t => filtered.filter(p => t.statuses.includes(p.status)).length;
+    const titleText = g.tiers.every(t => t.label)
+      ? `${g.icon} ` + g.tiers.map((t, i) =>
+          `<a class="cp-tier-link" onclick="jumpToTier('${g.key}',${i})" title="Scroll to ${t.label}">${t.label}<span class="cp-tier-count">${tierCount(t)}</span></a>`).join(' / ')
+      : g.title;
+    let titleHtml = `<span style="font-weight:700;font-size:14px">${titleText}</span>
       <span style="font-size:12px;color:var(--text-muted);font-weight:500">(${groupCount})</span>`;
     if (g.key === 'beta') {
       titleHtml += betaVersionUrl
@@ -2157,11 +2170,11 @@ function renderCurrentProjects() {
     // "live" tier from the "queued" tier whenever both have rows. Row numbers run
     // continuously across the whole section.
     let bodyRows = ''; let n = 0; let renderedTier = false;
-    g.tiers.forEach(t => {
+    g.tiers.forEach((t, ti) => {
       const items = filtered.filter(p => t.statuses.includes(p.status));
       if (!items.length) return;
       if (renderedTier) bodyRows += `<tr class="cp-tier-gap"><td colspan="10"></td></tr>`;
-      if (t.note) bodyRows += `<tr class="cp-tier-note"><td colspan="10">${t.note}</td></tr>`;
+      if (t.note) bodyRows += `<tr class="cp-tier-note" id="cp-tier-${g.key}-${ti}"><td colspan="10">${t.note}</td></tr>`;
       bodyRows += items.map(p => rowHtml(p, n++)).join('');
       renderedTier = true;
     });
@@ -4125,6 +4138,19 @@ function cpGroupClosed(key) {
   const remembered = cpGroupState()[key];
   return remembered ? remembered === 'closed' : CP_COLLAPSED_BY_DEFAULT.includes(key);
 }
+// Scroll to one tier of a Current Projects group (e.g. Needs Revision inside In Progress).
+function jumpToTier(key, i) {
+  document.getElementById('sec-cp')?.classList.remove('sec-collapsed');   // same as jumpTo
+  const grp = document.querySelector(`.cp-group#cp-${key}`);
+  if (grp && grp.classList.contains('cp-collapsed')) toggleCpGroup(key);
+  const row = document.getElementById(`cp-tier-${key}-${i}`);
+  if (!row) { toast('Nothing in that group right now'); return; }
+  // scrollIntoView, not window.scrollTo: the page may scroll an inner element.
+  // scroll-margin-top on the row keeps it clear of the sticky header + nav.
+  row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  row.classList.remove('cp-tier-flash'); void row.offsetWidth; row.classList.add('cp-tier-flash');
+}
+
 function toggleCpGroup(key) {
   const el = document.querySelector(`.cp-group#cp-${key}`);
   if (!el) return;
