@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="theme.js"></script>
 <link rel="icon" type="image/png" href="icons/togo-favicon.png"><link rel="apple-touch-icon" href="icons/togo-favicon.png">
-<title>TogoHealth · Command Project Tracker</title>
+<title>TogoHealth · Practice Management Tracker</title>
 <style>
   :root {
     --bg: #f8f9fa;
@@ -395,13 +395,16 @@
   .lane-command { background:#ccfbf1; color:#0f766e; }
   .lane-portal  { background:#ede9fe; color:#5b21b6; }
   .lane-untriaged { background:#fee2e2; color:#991b1b; }
+  .area-billing { background:#dcfce7; color:#166534; }
+  .area-credentialing { background:#e0f2fe; color:#075985; }
+  .area-reports { background:#fef3c7; color:#92400e; }
 </style>
 </head>
 <body>
 
 <div id="auth-overlay">
   <div class="auth-card">
-    <h2>TogoHealth · Command Project Tracker</h2>
+    <h2>TogoHealth · Practice Management Tracker</h2>
     <p>Sign in with your GitHub account. Only members of the <strong>togohealth-dev</strong> org can access this tracker.</p>
     <button class="btn btn-primary btn-lg" onclick="startOAuth()" style="width:100%">
       <svg height="16" width="16" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:6px" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -414,14 +417,12 @@
 <header>
   <div class="header-left" style="display:flex;align-items:center;gap:10px">
     <img src="icons/togo-logo.png" alt="Togo Health" style="height:40px;width:auto;display:block">
-    <div class="logo">Command <span>· Project Tracker</span></div>
+    <div class="logo">Practice Management <span>· Project Tracker</span></div>
   </div>
   <div class="header-right">
     <a href="index.html" class="btn btn-outline" title="The portal's own development tracker — ONC certification, alpha→beta→gamma">←<span class="lbl-wide"> Portal Tracker</span></a>
-    <a href="practice-mgmt.html" class="btn btn-outline" title="Practice Management — billing, credentialing and financial reports across the Portal and Command boards">💼<span class="lbl-wide"> Practice Mgmt</span></a>
-    <a href="command-admin.html" class="btn btn-outline" title="Admin view — who we're waiting on, what's next in each bundle, and whether the ship-path rule is holding">📋<span class="lbl-wide"> Admin view</span></a>
-    <a href="https://command.togohealth.com" target="_blank" class="btn btn-outline" title="The Command app itself">⚡<span class="lbl-wide"> command.togohealth.com</span> ↗</a>
-    <a href="https://github.com/togohealth-dev/emr-beta/issues?q=is%3Aissue+label%3Acommand" target="_blank" class="btn btn-outline">GitHub ↗</a>
+    <a href="command.html" class="btn btn-outline" title="Command — the business-ops product outside the portal">⚡<span class="lbl-wide"> Command</span></a>
+    <a href="https://github.com/togohealth-dev/emr-beta/issues?q=is%3Aissue+label%3Apractice-mgmt" target="_blank" class="btn btn-outline">GitHub ↗</a>
     <span id="last-updated" style="font-size:11px;color:var(--text-muted);align-self:center;white-space:nowrap" title="The board re-reads GitHub every 5 minutes — press ↻ Refresh for it now"></span>
     <button id="theme-btn" class="btn btn-outline" onclick="trackerTheme.cycle()" title="Theme">◐</button>
     <button class="btn btn-outline" onclick="loadAll()" title="Refresh now">↻<span class="lbl-wide"> Refresh</span></button>
@@ -431,66 +432,78 @@
 
 <nav class="section-nav">
   <span class="nav-label">Jump to</span>
-  <a onclick="jumpTo('co')" title="Command-only work — ships without Scott">⚡ Command-only</a>
-  <a onclick="jumpTo('ps')" title="Portal integration — localhost→alpha→beta→gamma, through Scott">🔒 Portal integration</a>
-  <a onclick="jumpTo('un')" title="Cards not yet classified into either track">⚠️ Untriaged</a>
+  <a onclick="jumpTo('bi')" title="Billing, claims, coding and payer rules">💵 Billing &amp; claims</a>
+  <a onclick="jumpTo('cr')" title="Provider credentialing, licensure, exclusion checks and payer enrollment">🪪 Credentialing &amp; enrollment</a>
+  <a onclick="jumpTo('rp')" title="Collections, RVU, payroll and contract-rate reporting">📊 Financial reports</a>
+  <a onclick="jumpTo('un')" title="Practice Management cards with no area yet">⚠️ Untriaged</a>
   <span style="color:var(--border)">·</span>
   <a onclick="jumpTo('done')">✓ Completed</a>
   <a onclick="jumpTo('ab')">🗄️ Abandoned</a>
   <span style="color:var(--border)">·</span>
-  <a href="command-admin.html" title="Who we're waiting on, what's next in each bundle, ship-path health">📋 Admin view ↗</a>
   <a href="index.html" class="board-switch" title="The portal's own board — ONC certification, and the localhost→alpha→beta→gamma flow through Scott">← Portal Tracker</a>
-  <a href="practice-mgmt.html" class="board-switch" title="Practice Management — billing, credentialing and financial reports">💼 Practice Management →</a>
+  <a href="command.html" class="board-switch" title="Command — the business-ops product outside the portal">⚡ Command Tracker →</a>
 </nav>
 
 <main>
   <div class="page-header">
     <div>
-      <h1>Command — Project Tracker</h1>
-      <p>The multi-tenant business-operations product at <strong>command.togohealth.com</strong> — outside the portal, integrated with it. Cards are the <code>command</code>-labelled issues on <code>togohealth-dev/emr-beta</code>.</p>
+      <h1>Practice Management — Project Tracker</h1>
+      <p>Billing, credentialing and the financial reporting behind them — pulled from the <a href="index.html">Portal</a> and <a href="command.html">Command</a> boards into one view. Cards are the <code>practice-mgmt</code>-labelled issues on <code>togohealth-dev/emr-beta</code>; each one still lives on, and is staged from, its home board.</p>
     </div>
-    <button class="btn btn-primary" onclick="openAddModal()">+ Add Command Project</button>
+    <button class="btn btn-primary" onclick="openAddModal()">+ Add PM Project</button>
   </div>
 
   <div id="umbrella-banner"></div>
 
   <div class="stats" id="stats"></div>
 
-  <!-- ── COMMAND-ONLY ── -->
-  <div class="section-block" id="sec-co">
+  <!-- ── AREAS ── -->
+  <div class="section-block" id="sec-bi">
     <div class="section-hdr">
-      <h2>⚡ Command-only</h2>
-      <p class="track-note"><strong>Does not touch the portal → <code>localhost&nbsp;→&nbsp;gamma</code>.</strong> No alpha, no beta, no Scott — and <strong>any developer can push it</strong>. Branch → pull request → tick “I ran it on localhost” and say what you clicked through → CI green → <strong>merge your own PR</strong>. There is no reviewer gate, so your statement that you tested it <em>is</em> the gate. Labelled <code>command-only</code>.</p>
-      <button class="sec-toggle" onclick="toggleSection('co')">▾</button>
+      <h2>💵 Billing &amp; claims</h2>
+      <p class="track-note">Charge capture, CPT/ICD coding rules, claims and payer rules, denials and the biller's queue. Labelled <code>pm-billing</code>.</p>
+      <button class="sec-toggle" onclick="toggleSection('bi')">▾</button>
     </div>
     <div class="sec-body">
-      <div id="co-loading" style="color:var(--text-muted);font-size:13px;padding:8px 0">Loading…</div>
-      <div id="co-content" style="display:none"></div>
+      <div id="bi-loading" style="color:var(--text-muted);font-size:13px;padding:8px 0">Loading…</div>
+      <div id="bi-content" style="display:none"></div>
     </div>
   </div>
 
   <hr class="section-divider">
 
-  <!-- ── PORTAL-SIDE ── -->
-  <div class="section-block" id="sec-ps">
+  <div class="section-block" id="sec-cr">
     <div class="section-hdr">
-      <h2>🔒 Portal integration</h2>
-      <p class="track-note"><strong>Touches the portal — its code, its database, its UI → <code>localhost&nbsp;→&nbsp;alpha&nbsp;→&nbsp;beta&nbsp;→&nbsp;gamma</code>, through Scott</strong>, exactly as portal work always has been. Shown here because Command is <em>blocked</em> on them, but <strong>driven from the <a href="index.html">Portal Tracker</a></strong>, which is where that machinery lives. Read-only here on purpose: one flow, one owner. Labelled <code>portal-integration</code>.</p>
-      <button class="sec-toggle" onclick="toggleSection('ps')">▾</button>
+      <h2>🪪 Credentialing &amp; enrollment</h2>
+      <p class="track-note">Provider credentialing files, licensure and DEA, exclusion and background screening, hospital privileges, PECOS/NPPES/CAQH and payer enrollment. Labelled <code>pm-credentialing</code>.</p>
+      <button class="sec-toggle" onclick="toggleSection('cr')">▾</button>
     </div>
     <div class="sec-body">
-      <div id="ps-loading" style="color:var(--text-muted);font-size:13px;padding:8px 0">Loading…</div>
-      <div id="ps-content" style="display:none"></div>
+      <div id="cr-loading" style="color:var(--text-muted);font-size:13px;padding:8px 0">Loading…</div>
+      <div id="cr-content" style="display:none"></div>
     </div>
   </div>
 
   <hr class="section-divider">
 
-  <!-- ── UNTRIAGED ── -->
+  <div class="section-block" id="sec-rp">
+    <div class="section-hdr">
+      <h2>📊 Financial &amp; billing reports</h2>
+      <p class="track-note">Collections, expected-vs-received, RVU and payroll reporting, and the contract rates they are measured against. Labelled <code>pm-reports</code>.</p>
+      <button class="sec-toggle" onclick="toggleSection('rp')">▾</button>
+    </div>
+    <div class="sec-body">
+      <div id="rp-loading" style="color:var(--text-muted);font-size:13px;padding:8px 0">Loading…</div>
+      <div id="rp-content" style="display:none"></div>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
   <div class="section-block" id="sec-un">
     <div class="section-hdr">
       <h2>⚠️ Untriaged</h2>
-      <p class="track-note">Command cards carrying neither <code>command-only</code> nor <code>portal-integration</code>. Every card must carry one — it decides the ship path and who may push — so anything here is a card nobody has classified yet. Label it and it moves into a track above.</p>
+      <p class="track-note">Cards labelled <code>practice-mgmt</code> with no area. Pick one and it moves into a section above.</p>
       <button class="sec-toggle" onclick="toggleSection('un')">▾</button>
     </div>
     <div class="sec-body">
@@ -505,7 +518,7 @@
   <div class="section-block" id="sec-done">
     <div class="section-hdr">
       <h2>✓ Completed</h2>
-      <p class="track-note">Merged and shipped. Closed issues carrying the <code>command</code> label.</p>
+      <p class="track-note">Shipped. Closed issues on this board.</p>
       <button class="sec-toggle" onclick="toggleSection('done')">▾</button>
     </div>
     <div class="sec-body">
@@ -534,10 +547,10 @@
 <!-- ── ADD NEW MODAL ── -->
 <div id="add-modal">
   <div class="modal-card">
-    <h3 id="modal-title">Add Command Project</h3>
+    <h3 id="modal-title">Add Practice Management Project</h3>
     <div class="modal-field">
       <label>Title</label>
-      <input type="text" id="m-title" placeholder="e.g. Command 40/40 · Entity document storage">
+      <input type="text" id="m-title" placeholder="e.g. PM 15/15 · Denial reason code report by payer">
     </div>
     <div class="modal-field">
       <label>Description</label>
@@ -570,15 +583,23 @@
         <option value="5">5 — Critical</option>
       </select>
     </div>
-    <!-- The track is the one thing that must be decided at creation: it decides who
-         ships the card and through which flow. Defaulting it silently is how a card
-         ends up in Untriaged, so it is a required choice with no pre-selection. -->
     <div class="modal-field">
-      <label>How does this ship?</label>
-      <select id="m-track" onchange="updateTrackNote()">
+      <label>Area</label>
+      <select id="m-area">
         <option value="">— Choose one —</option>
-        <option value="command-only">⚡ Command-only — no portal: localhost→gamma, any developer pushes</option>
-        <option value="portal-integration">🔒 Portal integration — touches the portal: localhost→alpha→beta→gamma, via Scott</option>
+        <option value="pm-billing">💵 Billing &amp; claims</option>
+        <option value="pm-credentialing">🪪 Credentialing &amp; enrollment</option>
+        <option value="pm-reports">📊 Financial &amp; billing reports</option>
+      </select>
+    </div>
+    <!-- The home board decides who stages the card: portal work goes
+         localhost→alpha→beta→gamma through Scott; Command work follows the
+         Command board's ship-path rule. This page only gathers the cards. -->
+    <div class="modal-field">
+      <label>Where is it built?</label>
+      <select id="m-home" onchange="updateTrackNote()">
+        <option value="portal">🔒 In the portal — staged from the Portal Tracker</option>
+        <option value="command">⚡ In Command — staged from the Command Tracker</option>
       </select>
       <div class="modal-onc-note" id="m-track-note" style="display:none"></div>
     </div>
@@ -599,7 +620,7 @@
         <div id="modal-success-title" style="font-weight:700;font-size:16px;margin-bottom:6px"></div>
         <a id="modal-success-link" href="" target="_blank" style="font-size:12px;color:var(--primary)">View on GitHub ↗</a>
       </div>
-      <div style="padding:12px 14px;background:var(--amber-bg);border:1px solid #fcd34d;border-radius:8px;font-size:12px;color:#92400e;line-height:1.5;margin-bottom:14px">
+      <div id="modal-next-step" style="padding:12px 14px;background:var(--amber-bg);border:1px solid #fcd34d;border-radius:8px;font-size:12px;color:#92400e;line-height:1.5;margin-bottom:14px">
         <strong>Next step:</strong> Copy the Claude prompt below and paste it into a new Claude Code session opened in <code>~/claude/command/</code>. It pre-loads the Command lane's MD files — the rules that make the branch → PR → localhost-confirmed → merge flow real, since GitHub Free cannot enforce them.
       </div>
       <div style="display:flex;gap:8px;justify-content:center">
@@ -655,6 +676,15 @@
       </select>
     </div>
     <div class="modal-field" style="margin-top:12px">
+      <label>Area</label>
+      <select id="edit-area">
+        <option value="">— None (Untriaged) —</option>
+        <option value="pm-billing">💵 Billing &amp; claims</option>
+        <option value="pm-credentialing">🪪 Credentialing &amp; enrollment</option>
+        <option value="pm-reports">📊 Financial &amp; billing reports</option>
+      </select>
+    </div>
+    <div class="modal-field" style="margin-top:12px">
       <label>Assignee</label>
       <!-- Options are filled from TEAM at init — a hand-kept copy drifted and left
            half the team unselectable, which silently blanked their assignment on save. -->
@@ -674,7 +704,7 @@
 </div>
 
 
-<footer><a href="https://github.com/togohealth-dev/emr-beta/issues?q=is%3Aissue+label%3Acommand" target="_blank">View all Command issues on GitHub</a> · <a href="index.html">Portal Tracker</a> · Token stored in localStorage only · No PHI</footer>
+<footer><a href="https://github.com/togohealth-dev/emr-beta/issues?q=is%3Aissue+label%3Apractice-mgmt" target="_blank">View all Practice Management issues on GitHub</a> · <a href="index.html">Portal Tracker</a> · <a href="command.html">Command Tracker</a> · Token stored in localStorage only · No PHI</footer>
 <div id="toast"></div>
 <div id="busy-chip" style="display:none;position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:300;background:#1e293b;color:#fff;padding:7px 16px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:0 3px 12px rgba(0,0,0,0.25);align-items:center;gap:8px">
   <span class="busy-spin" style="display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:busyspin 0.7s linear infinite"></span>
@@ -751,34 +781,39 @@
   html[data-theme="dark"] .lane-command { background:#213a35; color:#c1f4f0 }
   html[data-theme="dark"] .lane-portal { background:#201c31; color:#bb9bed }
   html[data-theme="dark"] .lane-untriaged { background:#331d1d; color:#f0abab }
+  html[data-theme="dark"] .area-billing { background:#12301f; color:#9be9b4 }
+  html[data-theme="dark"] .area-credentialing { background:#132a3a; color:#9fd4f5 }
+  html[data-theme="dark"] .area-reports { background:#3a2e12; color:#f2d48b }
 </style>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
-// Command Project Tracker
+// Practice Management Project Tracker
 //
-// The sibling of index.html (the Portal Development Tracker). Same look, same
-// plumbing, same GitHub token — deliberately, so moving between them costs a
-// click and no relearning. What differs is the QUESTION each page answers:
+// The third sibling of index.html (Portal) and command.html (Command). Same
+// look, same plumbing, same GitHub token. What differs is the QUESTION:
 //
-//   index.html    — "where is the portal in ONC certification, and what is in
-//                    alpha / beta / gamma right now?"
-//   command.html  — "what is Command shipping, and who ships it?"
+//   index.html          — where is the portal in ONC certification?
+//   command.html        — what is Command shipping, and who ships it?
+//   practice-mgmt.html  — where are billing, credentialing and the financial
+//                         reports behind them, wherever they are being built?
 //
-// Command's cards live in the SAME repo (togohealth-dev/emr-beta, label
-// `command`, umbrella #754) — the split is a split of VIEWS, not of data.
-// Nothing here migrates an issue; both pages read the one source of truth.
+// Cards live in the SAME repo (togohealth-dev/emr-beta). A card is on this
+// board when it carries `practice-mgmt`; its section comes from one area label:
+//   pm-billing        billing, coding, claims, payer rules
+//   pm-credentialing  credentialing, licensure, screening, payer enrollment
+//   pm-reports        collections / RVU / payroll / contract-rate reporting
 //
-// The organizing axis is the ship path, because for Command that is the only
-// thing that changes how you work. Greg set the rule on 2026-09-16 and it is
-// exactly two cases, with every card carrying one of them:
-//   `command-only`        does not touch the portal → localhost→gamma. No alpha,
-//                         no beta, no Scott; ANY developer can push it. Branch →
-//                         PR → "I ran it on localhost" → CI green → merge your own.
-//   `portal-integration`  touches the portal → localhost→alpha→beta→gamma,
-//                         pushed through Scott, as portal work always has been.
-// Both labels already existed on the issues (the second as `portal-review`,
-// renamed 2026-09-16); this page just stops burying them among 300 portal cards.
+// This page is a VIEW across the other two boards, not a third workflow. Each
+// card keeps its home board (Command if it carries `command`, otherwise the
+// Portal) and is staged there — alpha/beta/gamma needs the portal tracker's
+// machinery, Command's ship-path rule lives on command.html. Two boards
+// driving one card's stage is how stage history gets lost.
+//
+// PM_SEED lists the cards picked for this board on 2026-10-07. It lets the board
+// render before anyone with triage rights has applied the labels; once a card
+// carries `practice-mgmt` the label wins and the seed entry is ignored. A seed
+// entry can be deleted once its card is labelled.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const REPO = 'togohealth-dev/emr-beta';
@@ -788,6 +823,32 @@ const ATTACH_REPO = 'togohealth-dev/portal-attachments';
 const API  = 'https://api.github.com';
 
 const COMMAND_LABEL = 'command';
+const PM_LABEL = 'practice-mgmt';
+const AREAS = {
+  billing:       { label:'pm-billing',       key:'bi', name:'Billing & claims',          ico:'💵' },
+  credentialing: { label:'pm-credentialing', key:'cr', name:'Credentialing & enrollment', ico:'🪪' },
+  reports:       { label:'pm-reports',       key:'rp', name:'Financial reports',          ico:'📊' },
+};
+const AREA_LABELS = Object.values(AREAS).map(a => a.label);
+
+// Cards chosen for this board (2026-10-07): billing, credentialing, and the
+// financial / billing reports, pulled from the Portal and Command boards.
+const PM_SEED = {
+  // 💵 Billing & claims
+  562:'billing', 556:'billing', 564:'billing', 557:'billing', 565:'billing', 560:'billing',
+  561:'billing', 117:'billing', 567:'billing', 119:'billing', 931:'billing', 876:'billing',
+  855:'billing', 793:'billing', 622:'billing', 605:'billing', 91:'billing', 466:'billing',
+  118:'billing', 417:'billing',
+  // 🪪 Credentialing & enrollment
+  741:'credentialing', 139:'credentialing', 494:'credentialing', 492:'credentialing',
+  495:'credentialing', 493:'credentialing', 933:'credentialing', 934:'credentialing',
+  935:'credentialing', 936:'credentialing', 937:'credentialing', 938:'credentialing',
+  939:'credentialing', 940:'credentialing', 747:'credentialing', 748:'credentialing',
+  847:'credentialing', 943:'credentialing',
+  // 📊 Financial & billing reports
+  555:'reports', 558:'reports', 559:'reports', 236:'reports', 113:'reports', 515:'reports',
+  712:'reports', 791:'reports', 771:'reports',
+};
 
 const SCOTT = 'msdrigg';
 const TEAM = { 'morgan477':'Morgan', 'msdrigg':'Scott', 'Jordan-togoclaude':'Jordan', 'riley870':'Riley', 'gregbaird11':'Greg',
@@ -809,15 +870,27 @@ function populateAssigneeOptions() {
 // A card with neither is not "probably command-only" — it is a card whose ship
 // path nobody has decided, which is precisely what you need to know before
 // starting one. It gets its own section rather than a guessed default.
-function trackOf(labels) {
-  if ((labels||[]).includes('portal-integration')) return 'portal';
-  if ((labels||[]).includes('command-only'))       return 'command';
+function trackOf(labels, number) {
+  const l = labels || [];
+  for (const [area, a] of Object.entries(AREAS)) if (l.includes(a.label)) return area;
+  if (!l.includes(PM_LABEL) && PM_SEED[number]) return PM_SEED[number];
   return 'untriaged';
 }
+// Where the card is staged. A Command card that is portal-integration is
+// portal code, so it is staged on the portal board like any other portal card.
+function homeOf(labels) {
+  const l = labels || [];
+  return l.includes('command') && !l.includes('portal-integration') ? 'command' : 'portal';
+}
 const TRACK_PILL = {
-  command:   '<span class="lane-pill lane-command">Command-only</span>',
-  portal:    '<span class="lane-pill lane-portal">Portal integration</span>',
-  untriaged: '<span class="lane-pill lane-untriaged">Untriaged</span>',
+  billing:       '<span class="lane-pill area-billing">Billing</span>',
+  credentialing: '<span class="lane-pill area-credentialing">Credentialing</span>',
+  reports:       '<span class="lane-pill area-reports">Reports</span>',
+  untriaged:     '<span class="lane-pill lane-untriaged">Untriaged</span>',
+};
+const HOME_PILL = {
+  portal:  '<span class="lane-pill lane-portal" title="Staged from the Portal Tracker">Portal</span>',
+  command: '<span class="lane-pill lane-command" title="Staged from the Command Tracker">Command</span>',
 };
 
 // ── Bundles ──────────────────────────────────────────────────────────────────
@@ -839,6 +912,11 @@ function parseBundle(title) {
   return { name: null, umbrella: false, order: Infinity };
 }
 function isUmbrella(p) { return !!p.bundle?.umbrella; }
+function bundleShort(name) {
+  const n = (name || '').trim();
+  if (/^employee file$/i.test(n)) return 'EF';
+  return n.length > 8 ? n.split(/\s+/).map(w => w[0]).join('').toUpperCase() : n;
+}
 
 // The build-order prefix has its own column, so strip it from the title rather
 // than printing "12/39" twice on every row.
@@ -901,7 +979,7 @@ const getToken = () => localStorage.getItem('gh_pat');
 function startOAuth() {
   const state = crypto.randomUUID();
   sessionStorage.setItem('oauth_state', state);
-  sessionStorage.setItem('oauth_return', 'command.html');
+  sessionStorage.setItem('oauth_return', 'practice-mgmt.html');
   const params = new URLSearchParams({
     client_id: OAUTH_CLIENT_ID,
     redirect_uri: location.origin + location.pathname.replace(/[^/]*$/, ''),
@@ -1018,11 +1096,11 @@ async function refresh(loaders, label, silent) {
 }
 
 async function loadAll() {
-  await refresh([loadCommandProjects]);
+  await refresh([loadPMProjects]);
   markUpdated();
   startAutoRefresh();
 }
-async function reloadProjects() { await refresh([loadCommandProjects], 'Saving…'); }
+async function reloadProjects() { await refresh([loadPMProjects], 'Saving…'); }
 
 // The portal board polls every 60s because it is a live standup tool that several
 // people move cards on at once. This one is read by a couple of people and changes
@@ -1053,7 +1131,7 @@ function autoRefreshBlockedBy() {
 }
 async function autoRefreshTick() {
   if (autoRefreshBlockedBy()) return;
-  try { await refresh([loadCommandProjects], null, true); markUpdated(); }
+  try { await refresh([loadPMProjects], null, true); markUpdated(); }
   catch (e) { console.warn('auto-refresh failed', e); }   // a failed poll must not banner over a page being read
 }
 function startAutoRefresh() {
@@ -1067,19 +1145,34 @@ function markUpdated() {
 }
 
 // ── Load ─────────────────────────────────────────────────────────────────────
-// One query, every Command card. The portal tracker splits its board by the
+// Every practice-mgmt card, plus seeded cards not yet labelled (see PM_SEED).
+// (Inherited note from command.html:) The portal tracker splits its board by the
 // `current-project` / `future-idea` labels, which is why two Command cards (#811,
 // #821) carry neither and render nowhere over there. Fetching by `command`
 // instead means a card cannot go missing for want of a second label.
-async function loadCommandProjects() {
-  for (const k of ['co','ps','un','done']) {
+const SEC_KEYS = ['bi','cr','rp','un','done'];
+async function loadPMProjects() {
+  for (const k of SEC_KEYS) {
     const l = document.getElementById(`${k}-loading`);
     const c = document.getElementById(`${k}-content`);
     if (l) l.style.display = 'block';
     if (c) c.style.display = 'none';
   }
   try {
-    const raw = await ghFetchAll(`/repos/${REPO}/issues?labels=${COMMAND_LABEL}&state=all&per_page=100`);
+    // Labelled cards first; then any seeded card not labelled yet. With more
+    // than a handful missing, one paged sweep of the repo is cheaper than a
+    // request per issue.
+    const raw = await ghFetchAll(`/repos/${REPO}/issues?labels=${PM_LABEL}&state=all&per_page=100`);
+    const have = new Set(raw.map(i => i.number));
+    const missing = Object.keys(PM_SEED).map(Number).filter(n => !have.has(n));
+    if (missing.length > 8) {
+      const want = new Set(missing);
+      const sweep = await ghFetchAll(`/repos/${REPO}/issues?state=all&per_page=100`, 20);
+      raw.push(...sweep.filter(i => !i.pull_request && want.has(i.number)));
+    } else if (missing.length) {
+      const got = await Promise.all(missing.map(n => ghFetch(`/repos/${REPO}/issues/${n}`).catch(() => null)));
+      raw.push(...got.filter(Boolean));
+    }
     currentProjects = await Promise.all(raw.map(async issue => {
       const labels = issue.labels.map(l => l.name);
       const comments = issue.comments > 0
@@ -1089,19 +1182,20 @@ async function loadCommandProjects() {
     }));
     renderUmbrella();
     renderStats();
-    renderTrack('co', 'command');
-    renderTrack('ps', 'portal');
+    renderTrack('bi', 'billing');
+    renderTrack('cr', 'credentialing');
+    renderTrack('rp', 'reports');
     renderTrack('un', 'untriaged');
     renderCompleted();
     renderAbandoned();
-    for (const k of ['co','ps','un','done']) {
+    for (const k of SEC_KEYS) {
       const l = document.getElementById(`${k}-loading`);
       const c = document.getElementById(`${k}-content`);
       if (l) l.style.display = 'none';
       if (c) c.style.display = 'block';
     }
   } catch(e) {
-    for (const k of ['co','ps','un','done']) {
+    for (const k of SEC_KEYS) {
       const l = document.getElementById(`${k}-loading`);
       if (l) { l.style.display = 'block'; l.textContent = `Error: ${e.message}`; }
     }
@@ -1111,7 +1205,8 @@ async function loadCommandProjects() {
 
 function normalizeCommand(issue, labels, comments) {
   const has = n => labels.includes(n);
-  const track = trackOf(labels);
+  const track = trackOf(labels, issue.number);
+  const home = homeOf(labels);
   const bundle = parseBundle(issue.title);
 
   // Command-only work has no alpha/beta/gamma, so `status:pr-alpha-ready` means
@@ -1146,7 +1241,9 @@ function normalizeCommand(issue, labels, comments) {
     title: issue.title,
     body: issue.body || '',
     url: issue.html_url,
-    labels, status, track,
+    labels, status, track, home,
+    // statusBadge() picks its vocabulary from p.track; here that is the home board.
+    flow: home,
     prUrl,
     prNum: prMatch ? prMatch[1] : null,
     allComments: comments,
@@ -1164,7 +1261,7 @@ function normalizeCommand(issue, labels, comments) {
     // stays open and nobody thinks to re-check it two quarters later.
     openButDone: issue.state !== 'closed' && has('status:done'),
     order: bundle.order,
-    orderLabel: bundle.label || null,
+    orderLabel: bundle.label ? `${bundleShort(bundle.name)} ${bundle.label}` : null,
   };
 }
 
@@ -1176,7 +1273,7 @@ function normalizeCommand(issue, labels, comments) {
 function statusBadge(p) {
   if (p.status === 'done')      return `<span class="badge ps-done">✓ Shipped</span>`;
   if (p.status === 'abandoned') return `<span class="badge ps-abandoned">Abandoned</span>`;
-  if (p.track === 'portal') {
+  if (p.flow === 'portal') {
     return ({
       draft:          `<span class="badge ps-planning">📝 Draft</span>`,
       blocked:        `<span class="badge ps-blocked">⛔ Blocked</span>`,
@@ -1217,7 +1314,7 @@ function renderUmbrella() {
     const open = currentProjects.filter(p => !isUmbrella(p) && p.bundle.name && sameBundle(p.bundle.name, u.bundle.name)
                                              && p.status !== 'done' && p.status !== 'abandoned').length;
     return `<div class="umbrella">
-      <span class="u-ico">⚡</span>
+      <span class="u-ico">💼</span>
       <div class="u-text">
         <strong>${esc(u.bundle.name || u.title)}</strong>
         ${bundleBlurb(u)}
@@ -1236,8 +1333,12 @@ function renderUmbrella() {
 // to get wrong, which is rarely the first line of the issue body. Keyed by
 // bundle NAME so it survives an umbrella being renumbered or replaced.
 const BUNDLE_BLURB = {
-  'command': 'A tenant is a provider group — a row in <code>command_tenant</code>, never a name in code, a comment or a screen. Identity comes from the portal, the data lives in Supabase, and nothing patient-identifying lives here.',
+  'practice management': 'PMG cohort collections, the expected-amount rate engine, the biller work queue and the exec collections dashboard — build order PM 1/14–14/14.',
+  'onboarding': 'Provider and facility onboarding, credentialing and payer enrollment — Employee file 1/20–20/20 and PGPM 1/7–7/7.',
 };
+// Cards are titled "PM 4/14 · …" under an umbrella named "Practice Management";
+// the onboarding umbrella covers two prefixes. Map card prefixes to umbrellas.
+const BUNDLE_ALIAS = { 'pm':'practice management', 'employee file':'onboarding', 'pgpm':'onboarding' };
 function bundleBlurb(u) {
   const key = (u.bundle?.name || '').toLowerCase();
   return BUNDLE_BLURB[key] || esc(buildSummary(u, 220));
@@ -1245,7 +1346,8 @@ function bundleBlurb(u) {
 
 function sameBundle(cardName, umbrellaName) {
   if (!cardName || !umbrellaName) return false;
-  const a = cardName.toLowerCase(), b = umbrellaName.toLowerCase();
+  let a = cardName.toLowerCase(); const b = umbrellaName.toLowerCase();
+  a = BUNDLE_ALIAS[a] || a;
   return a === b || b.startsWith(a) || a.startsWith(b);
 }
 
@@ -1261,9 +1363,9 @@ function renderStats() {
   // Two different kinds of blocked, and calling both "blocked" was confusing:
   // one waits on Scott and the portal's staged flow, the other on a vendor or a
   // decision outside the company entirely.
-  const needsScott = open.filter(p => p.track === 'portal');
   const blocked    = open.filter(p => p.status === 'blocked');
-  const untriaged = open.filter(p => p.track === 'untriaged');
+  const untriaged  = open.filter(p => p.track === 'untriaged');
+  const byArea     = a => open.filter(p => p.track === a).length;
   const pct       = live.length ? Math.round(done.length / live.length * 100) : 0;
   const hrs       = Math.round(estSum(open) * 10) / 10;
 
@@ -1278,36 +1380,28 @@ function renderStats() {
     <div class="stat stat-sm"><div class="stat-label">Open</div><div class="stat-value">${open.length}</div><div class="stat-sub">not yet shipped</div></div>
     <div class="stat stat-sm"><div class="stat-label">In flight</div><div class="stat-value">${inFlight.length}</div><div class="stat-sub">started or in PR</div></div>
     <div class="stat stat-sm"><div class="stat-label">Blocked</div><div class="stat-value" style="color:${blocked.length?'var(--red)':'inherit'}">${blocked.length}</div><div class="stat-sub">waiting on others</div></div>
-    <div class="stat stat-sm"><div class="stat-label">Needs Scott</div><div class="stat-value" style="color:${needsScott.length?'var(--purple)':'inherit'}">${needsScott.length}</div><div class="stat-sub">portal-side</div></div>
-    <div class="stat stat-sm"><div class="stat-label">Untriaged</div><div class="stat-value" style="color:${untriaged.length?'var(--red)':'inherit'}">${untriaged.length}</div><div class="stat-sub">no ship path</div></div>
+    <div class="stat stat-sm"><div class="stat-label">💵 Billing</div><div class="stat-value">${byArea('billing')}</div><div class="stat-sub">open</div></div>
+    <div class="stat stat-sm"><div class="stat-label">🪪 Credentialing</div><div class="stat-value">${byArea('credentialing')}</div><div class="stat-sub">open</div></div>
+    <div class="stat stat-sm"><div class="stat-label">📊 Reports</div><div class="stat-value">${byArea('reports')}</div><div class="stat-sub">open</div></div>
+    ${untriaged.length ? `<div class="stat stat-sm"><div class="stat-label">Untriaged</div><div class="stat-value" style="color:var(--red)">${untriaged.length}</div><div class="stat-sub">no area</div></div>` : ''}
     <div class="stat stat-sm"><div class="stat-label">Est. remaining</div><div class="stat-value">${hrs||'—'}${hrs?'h':''}</div><div class="stat-sub">on open builds</div></div>`;
 }
 
 // ── Track sections ───────────────────────────────────────────────────────────
 // Two tiers per track: what is moving, and what is queued behind it. Same shape
 // the portal tracker uses for its stages, so the pages read the same way.
-const TIERS = {
-  command: [
-    { statuses:['blocked'],                                 note:'⛔ Blocked — waiting on someone else, not on you' },
-    { statuses:['in_progress','pr_open','needs_revision'],  note:'In flight — started, or PR open awaiting CI / merge' },
-    { statuses:['draft'],                                   note:'Queued — not started' },
-  ],
-  portal: [
-    { statuses:['blocked'],                                 note:'⛔ Blocked — waiting on someone else' },
-    { statuses:['beta_version','ready_beta','alpha_testing','pr_open','in_progress','needs_revision'], note:'In flight on the portal tracker — localhost→alpha→beta→gamma' },
-    { statuses:['draft'],                                   note:'Queued — not started' },
-  ],
-  untriaged: [
-    { statuses:['blocked'],                                 note:'⛔ Blocked' },
-    { statuses:['in_progress','pr_open','needs_revision','alpha_testing','ready_beta','beta_version'], note:'In flight — but with no agreed ship path' },
-    { statuses:['draft'],                                   note:'Queued' },
-  ],
-};
+const AREA_TIERS = [
+  { statuses:['blocked'],                                                                            note:'⛔ Blocked — waiting on someone else' },
+  { statuses:['beta_version','ready_beta','alpha_testing','pr_open','in_progress','needs_revision'], note:'In flight — started, in PR, or moving through alpha / beta' },
+  { statuses:['draft'],                                                                              note:'Queued — not started' },
+];
+const TIERS = { billing: AREA_TIERS, credentialing: AREA_TIERS, reports: AREA_TIERS, untriaged: AREA_TIERS };
 
 const TRACK_HEAD = `<thead><tr>
   <th style="width:54px">#</th>
-  <th style="width:52px">Order</th>
+  <th style="width:76px">Order</th>
   <th>Build</th>
+  <th style="width:84px">Board</th>
   <th style="width:140px">Status</th>
   <th style="width:72px">Priority</th>
   <th style="width:76px">Assigned</th>
@@ -1327,8 +1421,8 @@ function renderTrack(key, track) {
   // When it is empty it says so quietly and takes up one line.
   if (!items.length) {
     el.innerHTML = key === 'un'
-      ? `<div style="color:var(--green-atl);font-size:13px;padding:8px 0">✓ Every open Command card has a ship path.</div>`
-      : `<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Nothing open in this track.</div>`;
+      ? `<div style="color:var(--green-atl);font-size:13px;padding:8px 0">✓ Every open Practice Management card has an area.</div>`
+      : `<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Nothing open in this area.</div>`;
     return;
   }
 
@@ -1343,8 +1437,8 @@ function renderTrack(key, track) {
   for (const tier of TIERS[track]) {
     const inTier = items.filter(p => tier.statuses.includes(p.status));
     if (!inTier.length) continue;
-    if (!first) rows.push(`<tr class="cp-tier-gap"><td colspan="10"></td></tr>`);
-    rows.push(`<tr class="cp-tier-note"><td colspan="10">${tier.note} — ${inTier.length} ${estTotal(inTier)}</td></tr>`);
+    if (!first) rows.push(`<tr class="cp-tier-gap"><td colspan="11"></td></tr>`);
+    rows.push(`<tr class="cp-tier-note"><td colspan="11">${tier.note} — ${inTier.length} ${estTotal(inTier)}</td></tr>`);
 
     if (!showBundles) {
       rows.push(...inTier.sort((a,b) => a.order - b.order || a.number - b.number).map(p => trackRow(p)));
@@ -1365,7 +1459,7 @@ function renderTrack(key, track) {
       for (const [name, list] of ordered) {
         list.sort((a,b) => a.order - b.order || a.number - b.number);
         const label = name === '—' ? 'Not part of a bundle' : name;
-        rows.push(`<tr class="int-vgroup"><td colspan="10">${esc(label)} — ${list.length} ${estTotal(list)}</td></tr>`);
+        rows.push(`<tr class="int-vgroup"><td colspan="11">${esc(label)} — ${list.length} ${estTotal(list)}</td></tr>`);
         rows.push(...list.map(p => trackRow(p)));
       }
     }
@@ -1383,6 +1477,7 @@ function trackRow(p) {
       <a class="proj-title" href="${p.url}" target="_blank">${esc(shortTitle(p.title))}</a>
       <div class="proj-desc">${esc(buildSummary(p))}</div>
     </td>
+    <td>${HOME_PILL[p.home]}</td>
     <td>${statusBadge(p)}</td>
     <td>${dotsHtml(p.priority)}</td>
     <td>${assigneeHtml(p.assignees)}</td>
@@ -1419,47 +1514,33 @@ function clip(text, max) {
 // config issue and Scott's ping flow — all of which live on the portal tracker.
 // Two boards driving one card's stage is how stage history gets lost.
 function projectActions(p) {
-  const pb = promptBtn(p.number), eb = editBtn(p.number);
-
-  if (p.track === 'portal') {
-    return `${pb} ${eb}
-      <a href="index.html#proj-${p.number}" class="btn btn-purple btn-sm" title="This card's stage is driven from the Portal Tracker — localhost→alpha→beta→gamma, through Scott">Portal Tracker →</a>
-      <a href="${p.url}" target="_blank" class="btn btn-outline btn-sm" title="Open GitHub issue">↗</a>`;
-  }
-
+  const eb = editBtn(p.number);
+  const homeLink = p.home === 'command'
+    ? `<a href="command.html#proj-${p.number}" class="btn btn-green btn-sm" title="Staged from the Command Tracker — its ship-path rule lives there">Command Tracker →</a>`
+    : `<a href="index.html#proj-${p.number}" class="btn btn-purple btn-sm" title="Staged from the Portal Tracker — localhost→alpha→beta→gamma, through Scott. Copy Prompt is there too.">Portal Tracker →</a>`;
+  const parts = [];
+  // The Command prompt is self-contained; the portal prompt depends on the
+  // portal tracker's ONC context, so it is copied from the Portal Tracker.
+  if (p.home === 'command') parts.push(promptBtn(p.number));
+  parts.push(eb);
   if (p.track === 'untriaged') {
-    return `${pb} ${eb}
-      <button class="btn btn-green btn-sm" onclick="setTrack(${p.number},'command-only')" title="Does not touch the portal — localhost→gamma, any developer can push">⚡ Command-only</button>
-      <button class="btn btn-purple btn-sm" onclick="setTrack(${p.number},'portal-integration')" title="Touches the portal — localhost→alpha→beta→gamma, through Scott">🔒 Portal integration</button>
-      <a href="${p.url}" target="_blank" class="btn btn-outline btn-sm" title="Open GitHub issue">↗</a>`;
+    for (const [area, a] of Object.entries(AREAS))
+      parts.push(`<button class="btn btn-outline btn-sm" onclick="setArea(${p.number},'${area}')" title="Put this in ${a.name}">${a.ico} ${a.name.split(' ')[0]}</button>`);
   }
+  parts.push(homeLink);
+  parts.push(`<a href="${p.url}" target="_blank" class="btn btn-outline btn-sm" title="Open GitHub issue">↗</a>`);
+  return parts.join(' ');
+}
 
-  const parts = [pb, eb];
-  if (p.status === 'blocked') {
-    parts.push(`<button class="btn btn-primary btn-sm" onclick="setInProgress(${p.number})" title="The blocker cleared — put this back in progress">Unblock</button>`);
-    parts.push(`<button class="btn btn-outline btn-sm" onclick="openNotes(${p.number})" title="Who are we waiting on? Record it here.">Who's blocking?</button>`);
-  }
-  if (p.status === 'draft') {
-    parts.push(`<button class="btn btn-primary btn-sm" onclick="setInProgress(${p.number})" title="Start work">Start</button>`);
-  }
-  if (p.status === 'draft' || p.status === 'in_progress') {
-    parts.push(`<button class="btn btn-danger btn-sm" onclick="setBlocked(${p.number})" title="Waiting on someone outside the team — a vendor, a decision, another party">⛔ Blocked</button>`);
-  }
-  if (p.status === 'in_progress') {
-    parts.push(`<button class="btn btn-outline btn-sm" onclick="setDraft(${p.number})" title="Park this — back to Queued">→ Queued</button>`);
-  }
-  if (p.status === 'in_progress' || p.status === 'needs_revision') {
-    parts.push(`<button class="btn btn-amber btn-sm" onclick="setPrOpen(${p.number})" title="Record the PR — you will be asked to confirm you ran it on localhost">PR open</button>`);
-    // Small changes do ship without a ceremony; keep the shortcut where work has
-    // actually started, and off drafts, where it is only noise.
-    parts.push(`<button class="btn btn-green btn-sm" onclick="markProjectDone(${p.number})" title="Shipped — skips recording a PR">Mark shipped</button>`);
-  }
-  if (p.status === 'pr_open') {
-    parts.push(`<button class="btn btn-green btn-sm" onclick="markProjectDone(${p.number})" title="PR merged — CI green, shipped">Merged ✓</button>`);
-    parts.push(`<button class="btn btn-danger btn-sm" onclick="markNeedsWork(${p.number})" title="Something is wrong — send it back">Needs work</button>`);
-  }
-  parts.push(`<button class="btn btn-danger btn-sm" onclick="abandonProject(${p.number})" title="Mark as abandoned">Abandon</button>`);
-  return parts.join('');
+// One area per card. Setting it also applies `practice-mgmt`, which is what
+// keeps the card on this board once its seed entry is gone.
+async function setArea(number, area) {
+  await withProjectLoading(number, async () => {
+    for (const l of AREA_LABELS) if (l !== AREAS[area].label) await removeLabel(number, l).catch(()=>{});
+    await addLabel(number, PM_LABEL);
+    await addLabel(number, AREAS[area].label);
+    toast(`#${number} → ${AREAS[area].name}`);
+  });
 }
 
 const _projectsInFlight = new Set();
@@ -1609,7 +1690,7 @@ function renderCompleted() {
 
   const head = `<thead><tr>
     <th style="width:54px">#</th><th style="width:52px">Order</th><th>Build</th>
-    <th style="width:110px">Track</th><th style="width:76px">Developer</th>
+    <th style="width:110px">Area</th><th style="width:76px">Developer</th>
     <th style="width:48px">Est</th><th style="width:62px">PR</th>
     <th style="width:58px">Notes</th><th style="width:150px">Actions</th>
   </tr></thead>`;
@@ -1619,12 +1700,12 @@ function renderCompleted() {
     <td><span style="color:#4caf50;font-size:14px;margin-right:5px">✓</span><a class="proj-title" href="${p.url}" target="_blank">${esc(shortTitle(p.title))}</a>
         ${p.openButDone ? `<span class="lane-pill lane-untriaged" title="Labelled status:done but the issue is still open. Check the body before closing it — an open issue under a done label usually means the card has a live tail, and the label is the thing that is wrong.">issue still open</span>` : ''}
         <div class="proj-desc">${esc(buildSummary(p))}</div></td>
-    <td>${TRACK_PILL[p.track]}</td>
+    <td>${TRACK_PILL[p.track]} ${HOME_PILL[p.home]}</td>
     <td>${assigneeHtml(p.assignees)}</td>
     <td>${estHtml(p.codingEst)}</td>
     <td>${prHtml(p.prUrl, p.prNum)}</td>
     <td>${notesHtml(p)}</td>
-    <td><div class="actions">${promptBtn(p.number)} ${editBtn(p.number)} <a href="${p.url}" target="_blank" class="btn btn-outline btn-sm">↗</a></div></td>
+    <td><div class="actions">${p.home==='command'?promptBtn(p.number):''} ${editBtn(p.number)} <a href="${p.url}" target="_blank" class="btn btn-outline btn-sm">↗</a></div></td>
   </tr>`).join('');
   content.innerHTML = `<div class="proj-table-wrap"><table>${head}<tbody>${rows}</tbody></table></div>`;
 }
@@ -1635,7 +1716,7 @@ function renderAbandoned() {
   const ab = currentProjects.filter(p => p.status === 'abandoned');
   if (!ab.length) { el.innerHTML = `<div style="color:var(--text-muted);font-size:13px;padding:8px 0">None.</div>`; return; }
   el.innerHTML = `<div class="proj-table-wrap"><table>
-    <thead><tr><th style="width:54px">#</th><th>Build</th><th style="width:110px">Track</th><th style="width:58px">Notes</th><th style="width:60px"></th></tr></thead>
+    <thead><tr><th style="width:54px">#</th><th>Build</th><th style="width:110px">Area</th><th style="width:58px">Notes</th><th style="width:60px"></th></tr></thead>
     <tbody>${ab.map(p => `<tr id="proj-${p.number}">
       <td style="font-size:12px;font-weight:600"><a href="${p.url}" target="_blank" style="color:var(--text-muted);text-decoration:none">#${p.number}</a></td>
       <td><a class="proj-title" href="${p.url}" target="_blank" style="text-decoration:line-through;opacity:.7">${esc(shortTitle(p.title))}</a></td>
@@ -1953,8 +2034,9 @@ function openAddModal() {
   document.getElementById('m-title').value = '';
   document.getElementById('m-desc').value = '';
   document.getElementById('m-pr').value = '';
-  document.getElementById('m-track').value = '';
-  document.getElementById('m-track-note').style.display = 'none';
+  document.getElementById('m-area').value = '';
+  document.getElementById('m-home').value = 'portal';
+  updateTrackNote();
   document.getElementById('add-modal').classList.add('open');
 }
 
@@ -1966,22 +2048,20 @@ function closeAddModal() {
 }
 
 function updateTrackNote() {
-  const v = document.getElementById('m-track').value;
+  const v = document.getElementById('m-home').value;
   const note = document.getElementById('m-track-note');
-  if (!v) { note.style.display = 'none'; return; }
-  note.innerHTML = v === 'command-only'
-    ? `⚡ <strong>Command-only — <code>localhost → gamma</code>.</strong> No alpha, no beta, no Scott, and any developer can push it. Branch → pull request → tick “I ran it on localhost” and say what you clicked through → CI green → merge your own PR. No reviewer, which is exactly why the confirmation is required.`
-    : `🔒 <strong>Portal integration — <code>localhost → alpha → beta → gamma</code>.</strong> Touching the portal means Scott and the full staged path, as portal work always has. It will appear on both boards, and its stage is driven from the <a href="index.html">Portal Tracker</a>.`;
+  note.innerHTML = v === 'command'
+    ? `⚡ <strong>Built in Command.</strong> It gets the <code>command</code> label and lands in <em>Untriaged</em> on the <a href="command.html">Command Tracker</a>, where its ship path (command-only or portal-integration) is chosen and it is staged.`
+    : `🔒 <strong>Built in the portal — <code>localhost → alpha → beta → gamma</code>, through Scott.</strong> It also appears on the <a href="index.html">Portal Tracker</a>, which is where it is staged and where its Claude prompt is copied.`;
   note.style.display = 'block';
 }
 
 async function submitNewProject() {
   const title = document.getElementById('m-title').value.trim();
   if (!title) { alert('Title is required'); return; }
-  const track = document.getElementById('m-track').value;
-  // Untriaged cards are the one failure mode this page exists to surface, so the
-  // form refuses to create one rather than quietly adding to the pile.
-  if (!track) { alert('Choose how this ships — Command-only or Portal integration.\n\nThat choice decides the ship path and who may push it, so it cannot be left blank. If it touches the portal at all, it is Portal integration.'); return; }
+  const area = document.getElementById('m-area').value;
+  if (!area) { alert('Choose an area — Billing, Credentialing or Reports. It decides where the card sits on this board.'); return; }
+  const home = document.getElementById('m-home').value;
 
   const desc     = document.getElementById('m-desc').value.trim();
   const type     = document.getElementById('m-type').value;
@@ -1994,29 +2074,31 @@ async function submitNewProject() {
   btn.disabled = true; btn.textContent = 'Creating…';
 
   const prSection = prUrl ? `\n\n**PR:** ${prUrl}` : '';
-  const shipLine = track === 'command-only'
-    ? `**Ships:** \`command-only\` — does not touch the portal, so **localhost→gamma**. Any developer can push it: branch → PR → confirm you ran it on localhost → CI green → merge your own PR. No alpha, no beta, no Scott.`
-    : `**Ships:** \`portal-integration\` — touches the portal, so the full **localhost→alpha→beta→gamma** path through Scott. Driven from the Portal Tracker.`;
-  const body = `${desc}\n\n${shipLine}${prSection}\n\n---\n*Coding estimate: ${hours||'?'}h · Type: ${type}*`;
+  const homeLine = home === 'command'
+    ? `**Board:** Practice Management · built in **Command** — ship path to be set on the Command Tracker.`
+    : `**Board:** Practice Management · built in the **portal** — localhost→alpha→beta→gamma through Scott, staged from the Portal Tracker.`;
+  const body = `${desc}\n\n${homeLine}${prSection}\n\n---\n*Coding estimate: ${hours||'?'}h · Type: ${type}*`;
 
-  // `current-project` keeps the card visible on the portal tracker's board too
-  // when it is portal-side work; a command-only card does not need it, but the
-  // label costs nothing and keeps GitHub's own filters consistent.
-  const labels = [COMMAND_LABEL, track, type, `priority-${priority}`, 'status:draft',
-                  track === 'portal-integration' ? 'current-project' : 'future-idea'];
+  const labels = [PM_LABEL, area, type, `priority-${priority}`, 'status:draft', 'future-idea'];
+  if (home === 'command') labels.push(COMMAND_LABEL);
 
   try {
     const issue = await ghFetch(`/repos/${REPO}/issues`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ title, body, labels, assignees: assign ? [currentUser.login] : [] })
     });
-    pendingProjectPrompt = buildCommandProjectPrompt({ number: issue.number, title, body, url: issue.html_url, labels, track: trackOf(labels) });
+    pendingProjectPrompt = home === 'command'
+      ? buildCommandProjectPrompt({ number: issue.number, title, body, url: issue.html_url, labels, track: 'untriaged' })
+      : '';
     document.querySelectorAll('#add-modal .modal-field, #add-modal .modal-row').forEach(el => el.style.display = 'none');
     document.getElementById('modal-form-actions').style.display = 'none';
     document.getElementById('modal-success-title').textContent = title;
     document.getElementById('modal-success-link').href = issue.html_url;
     document.getElementById('modal-success').style.display = 'block';
-    document.getElementById('modal-copy-prompt-btn').textContent = '📋 Copy Claude Prompt';
+    const ns = document.getElementById('modal-next-step');
+    if (ns && home !== 'command') ns.innerHTML = `<strong>Next step:</strong> open it on the <a href="index.html#proj-${issue.number}">Portal Tracker</a> — that is where portal work is staged and where its Claude prompt is copied (it carries the ONC context this board does not).`;
+    const cp = document.getElementById('modal-copy-prompt-btn');
+    if (cp) { cp.textContent = '📋 Copy Claude Prompt'; cp.style.display = pendingProjectPrompt ? '' : 'none'; }
     await loadAll();
   } catch(e) {
     toast(`Error: ${e.message}`, true);
@@ -2034,6 +2116,7 @@ function openEditModal(n) {
   document.getElementById('edit-title').value = p.title;
   document.getElementById('edit-priority').value = p.labels?.find(l => l.startsWith('priority-'))?.slice(9) || '';
   document.getElementById('edit-assignee').value = p.assignees?.[0] || '';
+  document.getElementById('edit-area').value = p.track === 'untriaged' ? '' : AREAS[p.track].label;
   document.getElementById('edit-pr-url').value = p.prUrl || '';
   document.getElementById('edit-modal').style.display = 'flex';
 }
@@ -2062,6 +2145,13 @@ async function saveEdit() {
       body:JSON.stringify({ title, assignees: assignee ? [assignee] : [], body }) });
     for (let i=1; i<=5; i++) await removeLabel(n, `priority-${i}`).catch(()=>{});
     if (prio) await addLabel(n, `priority-${prio}`);
+    const areaLbl = document.getElementById('edit-area').value;
+    const cur = currentProjects.find(p => p.number === n);
+    const curLbl = cur && cur.track !== 'untriaged' ? AREAS[cur.track].label : '';
+    if (areaLbl !== curLbl || (areaLbl && !cur.labels.includes(areaLbl))) {
+      for (const l of AREA_LABELS) if (l !== areaLbl) await removeLabel(n, l).catch(()=>{});
+      if (areaLbl) { await addLabel(n, PM_LABEL); await addLabel(n, areaLbl); }
+    }
     await loadAll();
     document.getElementById('edit-modal').style.display = 'none';
     editIssueNumber = null;
@@ -2081,10 +2171,10 @@ async function saveEdit() {
 function buildCommandProjectPrompt(proj) {
   const firstLine = (proj.body||'').split('\n').filter(l=>l.trim()).slice(0,6).join('\n');
   const activeCommand = currentProjects
-    .filter(p => p.status !== 'done' && p.status !== 'abandoned' && !isUmbrella(p))
-    .map(p => `  - #${p.number} "${p.title}" [${p.status}${p.track==='portal'?' · portal-side':''}]`)
+    .filter(p => p.home === 'command' && p.status !== 'done' && p.status !== 'abandoned' && !isUmbrella(p))
+    .map(p => `  - #${p.number} "${p.title}" [${p.status}]`)
     .join('\n') || '  - None currently in progress';
-  const portalSide = proj.track === 'portal';
+  const portalSide = (proj.labels||[]).includes('portal-integration');
 
   return `Session topic: Building "${proj.title}"
 GitHub Issue: https://github.com/${REPO}/issues/${proj.number}
@@ -2151,6 +2241,7 @@ function copyNewProjectPrompt() {
 function copyProjectPrompt(number) {
   const p = currentProjects.find(p => p.number === number);
   if (!p) { toast(`Can't build a prompt for #${number} — project not loaded`, true); return; }
+  if (p.home !== 'command') { location.href = `index.html#proj-${number}`; return; }
   copyToClipboard(buildCommandProjectPrompt(p));
   const btn = document.getElementById(`cpbtn-${number}`);
   if (btn) { btn.textContent = '✓ Copied'; setTimeout(() => { btn.textContent = 'Copy Prompt'; }, 2000); }
@@ -2180,7 +2271,7 @@ function toast(msg, err=false) {
 
 // Section open/closed state persists per browser. Its own key — sharing the
 // portal tracker's would collapse sections here that share a name there.
-const SEC_STATE_KEY = 'command_tracker_sections_v1';
+const SEC_STATE_KEY = 'pm_tracker_sections_v1';
 const SEC_COLLAPSED_BY_DEFAULT = ['done','ab'];
 function readSecState() {
   try { return JSON.parse(localStorage.getItem(SEC_STATE_KEY) || '{}'); } catch { return {}; }
@@ -2217,7 +2308,7 @@ function jumpTo(key) {
     document.getElementById('auth-overlay').style.display = 'none';
     try {
       await loadAll();
-      // Deep link from the portal tracker: command.html#proj-761 scrolls to the card.
+      // Deep link: practice-mgmt.html#proj-557 scrolls to the card.
       if (location.hash.startsWith('#proj-')) {
         const el = document.getElementById(location.hash.slice(1));
         if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
