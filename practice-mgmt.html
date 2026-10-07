@@ -448,7 +448,7 @@
   <div class="page-header">
     <div>
       <h1>Practice Management — Project Tracker</h1>
-      <p>Billing, credentialing and the financial reporting behind them — pulled from the <a href="index.html">Portal</a> and <a href="command.html">Command</a> boards into one view. Cards are the <code>practice-mgmt</code>-labelled issues on <code>togohealth-dev/emr-beta</code>; each one still lives on, and is staged from, its home board.</p>
+      <p>Billing, credentialing and the financial reporting behind them — pulled from the <a href="index.html">Portal</a> and <a href="command.html">Command</a> boards into one view. Cards are the <code>practice-mgmt</code>-labelled issues on <code>togohealth-dev/emr-beta</code>; each one still lives on, and is staged from, its home board. <strong>Every card here ships <code>localhost → alpha → beta → gamma</code>, through Scott</strong> — the same path as physician-portal work, including cards built in Command.</p>
     </div>
     <button class="btn btn-primary" onclick="openAddModal()">+ Add PM Project</button>
   </div>
@@ -599,7 +599,7 @@
       <label>Where is it built?</label>
       <select id="m-home" onchange="updateTrackNote()">
         <option value="portal">🔒 In the portal — staged from the Portal Tracker</option>
-        <option value="command">⚡ In Command — staged from the Command Tracker</option>
+        <option value="command">⚡ In Command — still localhost→alpha→beta→gamma (board rule)</option>
       </select>
       <div class="modal-onc-note" id="m-track-note" style="display:none"></div>
     </div>
@@ -838,7 +838,7 @@ const PM_SEED = {
   562:'billing', 556:'billing', 564:'billing', 557:'billing', 565:'billing', 560:'billing',
   561:'billing', 117:'billing', 567:'billing', 119:'billing', 931:'billing', 876:'billing',
   855:'billing', 793:'billing', 622:'billing', 605:'billing', 91:'billing', 466:'billing',
-  118:'billing', 417:'billing',
+  118:'billing', 417:'billing', 1036:'billing',
   // 🪪 Credentialing & enrollment
   741:'credentialing', 139:'credentialing', 494:'credentialing', 492:'credentialing',
   495:'credentialing', 493:'credentialing', 933:'credentialing', 934:'credentialing',
@@ -1243,7 +1243,9 @@ function normalizeCommand(issue, labels, comments) {
     url: issue.html_url,
     labels, status, track, home,
     // statusBadge() picks its vocabulary from p.track; here that is the home board.
-    flow: home,
+    // Board rule (Tanner, 2026-10-07): every Practice Management card ships
+    // localhost→alpha→beta→gamma through Scott, wherever it is built.
+    flow: 'portal',
     prUrl,
     prNum: prMatch ? prMatch[1] : null,
     allComments: comments,
@@ -1475,6 +1477,7 @@ function trackRow(p) {
     <td style="font-size:11px;color:var(--text-muted);font-weight:700;white-space:nowrap">${p.orderLabel || '—'}</td>
     <td>
       <a class="proj-title" href="${p.url}" target="_blank">${esc(shortTitle(p.title))}</a>
+      ${p.labels.includes('command-only') ? `<span class="lane-pill lane-untriaged" title="Labelled command-only (localhost→gamma), but every Practice Management card ships localhost→alpha→beta→gamma. Re-label it portal-integration.">⚠ ship path</span>` : ''}
       <div class="proj-desc">${esc(buildSummary(p))}</div>
     </td>
     <td>${HOME_PILL[p.home]}</td>
@@ -2051,7 +2054,7 @@ function updateTrackNote() {
   const v = document.getElementById('m-home').value;
   const note = document.getElementById('m-track-note');
   note.innerHTML = v === 'command'
-    ? `⚡ <strong>Built in Command.</strong> It gets the <code>command</code> label and lands in <em>Untriaged</em> on the <a href="command.html">Command Tracker</a>, where its ship path (command-only or portal-integration) is chosen and it is staged.`
+    ? `⚡ <strong>Built in Command — but it still ships <code>localhost → alpha → beta → gamma</code>, through Scott.</strong> That is the rule for every Practice Management card, so it is created as <code>command</code> + <code>portal-integration</code>.`
     : `🔒 <strong>Built in the portal — <code>localhost → alpha → beta → gamma</code>, through Scott.</strong> It also appears on the <a href="index.html">Portal Tracker</a>, which is where it is staged and where its Claude prompt is copied.`;
   note.style.display = 'block';
 }
@@ -2075,12 +2078,12 @@ async function submitNewProject() {
 
   const prSection = prUrl ? `\n\n**PR:** ${prUrl}` : '';
   const homeLine = home === 'command'
-    ? `**Board:** Practice Management · built in **Command** — ship path to be set on the Command Tracker.`
+    ? `**Board:** Practice Management · built in **Command** · ships \`portal-integration\` — localhost→alpha→beta→gamma through Scott (every PM card does).`
     : `**Board:** Practice Management · built in the **portal** — localhost→alpha→beta→gamma through Scott, staged from the Portal Tracker.`;
   const body = `${desc}\n\n${homeLine}${prSection}\n\n---\n*Coding estimate: ${hours||'?'}h · Type: ${type}*`;
 
   const labels = [PM_LABEL, area, type, `priority-${priority}`, 'status:draft', 'future-idea'];
-  if (home === 'command') labels.push(COMMAND_LABEL);
+  if (home === 'command') labels.push(COMMAND_LABEL, 'portal-integration');
 
   try {
     const issue = await ghFetch(`/repos/${REPO}/issues`, {
@@ -2174,7 +2177,7 @@ function buildCommandProjectPrompt(proj) {
     .filter(p => p.home === 'command' && p.status !== 'done' && p.status !== 'abandoned' && !isUmbrella(p))
     .map(p => `  - #${p.number} "${p.title}" [${p.status}]`)
     .join('\n') || '  - None currently in progress';
-  const portalSide = (proj.labels||[]).includes('portal-integration');
+  const portalSide = true; // board rule: every Practice Management card ships localhost→alpha→beta→gamma
 
   return `Session topic: Building "${proj.title}"
 GitHub Issue: https://github.com/${REPO}/issues/${proj.number}
@@ -2197,7 +2200,7 @@ ${activeCommand}
 
 ─── HOW THIS SHIPS ───────────────────────────────────
 ${portalSide
-? `⚠️ This card is labelled portal-integration: it TOUCHES THE PORTAL.
+? `⚠️ This is a Practice Management card: by board rule it ships like portal work.
 Ship path: localhost → alpha → beta → gamma, through Scott, exactly as portal
 work always has been. Driven from the Portal Tracker. Do NOT merge it yourself.
 If you find it does not actually touch the portal, say so and re-label it
